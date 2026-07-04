@@ -94,7 +94,6 @@ def main():
     image[boot + SECTOR:boot + 2 * SECTOR] = fsinfo
 
     fat_start = boot + RESERVED * SECTOR
-    data_start = fat_start + FATS * FAT_SECTORS * SECTOR
 
     fat = bytearray(FAT_SECTORS * SECTOR)
     entries = [0x0FFFFFF8, 0x0FFFFFFF, 0x0FFFFFFF, 0x0FFFFFFF]
@@ -104,18 +103,6 @@ def main():
     for f in range(FATS):
         start = fat_start + f * FAT_SECTORS * SECTOR
         image[start:start + FAT_SECTORS * SECTOR] = fat
-
-    text = (
-        "Micron FAT32 disk\r\n"
-        "\r\n"
-        "This file is stored in build/fat32.img, not in build/micron.img.\r\n"
-        "QEMU attaches it as a second ATA disk; real hardware can use an ATA/SATA disk in legacy IDE mode.\r\n"
-    ).encode("ascii")
-
-    root = bytearray(SECTOR)
-    root[0:32] = short_entry("README", "TXT", 0x20, 3, len(text))
-    image[data_start:data_start + SECTOR] = root
-    image[data_start + SECTOR:data_start + SECTOR + len(text)] = text
 
     with open(out, "wb") as f:
         f.write(image)

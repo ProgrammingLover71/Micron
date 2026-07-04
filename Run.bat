@@ -1,0 +1,1 @@
+qemu-system-x86_64 -drive if=ide,index=0,media=disk,format=raw,file=build/micron.img -drive if=ide,index=1,media=disk,format=raw,file=build/fat32.img
