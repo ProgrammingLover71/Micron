@@ -4,6 +4,7 @@
 #include "../shell/shell_str.h"
 #include "../fs/ata.h"
 #include "../fs/fat32.h"
+#include "../kernel/time.h"
 #include "edit/edit.h"
 
 
@@ -19,6 +20,7 @@ static int cmd_rm(int argc, char **argv);
 static int cmd_touch(int argc, char **argv);
 static int cmd_cat(int argc, char **argv);
 static int cmd_edit(int argc, char **argv);
+static int cmd_time(int argc, char **argv);
 
 // --- Command Registry --- //
 
@@ -35,6 +37,7 @@ static const rt_command_t commands[] = {
     {"touch",    "Create a text file",         cmd_touch},
     {"cat",      "Print a text file",          cmd_cat},
     {"edit",     "Edit a text file",           cmd_edit},
+    {"time",     "Show RTC date and time",     cmd_time},
 };
 
 
@@ -319,4 +322,41 @@ static int cmd_edit(int argc, char **argv)
     }
 
     return edit_run(argv[1]);
+}
+
+static void put2(uint32_t value)
+{
+    char num[16];
+    if (value < 10)
+        vga_putc('0');
+    uint_to_str(value, num, sizeof(num));
+    vga_puts(num);
+}
+
+static int cmd_time(int argc, char **argv)
+{
+    (void)argv;
+    if (argc > 1) return 1;
+
+    rtc_time_t now;
+    char num[16];
+    if (!time_read_rtc(&now)) {
+        vga_puts("Could not read RTC.\n");
+        return 1;
+    }
+
+    uint_to_str(now.year, num, sizeof(num));
+    vga_puts(num);
+    vga_putc('-');
+    put2(now.month);
+    vga_putc('-');
+    put2(now.day);
+    vga_putc(' ');
+    put2(now.hour);
+    vga_putc(':');
+    put2(now.minute);
+    vga_putc(':');
+    put2(now.second);
+    vga_puts(" UTC\n");
+    return 0;
 }
